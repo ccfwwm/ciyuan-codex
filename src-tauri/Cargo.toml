@@ -7,11 +7,11 @@ name = "codex-app-manager"
 # defensively to pin `cargo run` to the app should another src/bin/* be added.
 default-run = "codex-app-manager"
 version = "0.5.16"
-description = "A cross-platform manager for installing and updating mirrored official Codex desktop app packages."
-authors = ["Wangnov"]
+description = "A native Ciyuan Sub2API account client and official Codex desktop manager."
+authors = ["ccfwwm", "Wangnov"]
 edition.workspace = true
 license.workspace = true
-repository = "https://github.com/Wangnov/Codex-App-Manager"
+repository = "https://github.com/ccfwwm/ciyuan-codex"
 
 [lib]
 name = "codex_app_manager_lib"
@@ -28,7 +28,9 @@ codex-win-engine = { path = "../crates/codex-win-engine" }
 directories = "6.0.0"
 fs4 = "1.1"
 log.workspace = true
-reqwest = { version = "0.13.4", default-features = false, features = ["socks", "system-proxy"] }
+reqwest = { version = "0.13.4", default-features = false, features = ["socks", "system-proxy", "json", "query", "stream", "rustls"] }
+keyring = { version = "3.6", features = ["apple-native", "windows-native"] }
+toml_edit = "0.23"
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

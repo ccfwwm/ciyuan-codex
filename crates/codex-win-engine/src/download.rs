@@ -5,7 +5,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use sha2::{Digest, Sha256};
 
 use crate::limits::MAX_PACKAGE_BYTES;
-use crate::network::{is_schannel_revocation_check_failure, NetworkConfig, SchannelRevocationCheck};
+use crate::network::{
+    is_schannel_revocation_check_failure, NetworkConfig, SchannelRevocationCheck,
+};
 use crate::process::{
     curl_exe, hidden_command, run_with_progress, RunError, RunLimits, TimeoutKind,
 };
@@ -238,9 +240,7 @@ fn run_curl_once(
             let downloaded = std::fs::metadata(dest).map(|m| m.len()).unwrap_or(0);
             return match kind {
                 TimeoutKind::Stall => {
-                    log::warn!(
-                        "Windows download stalled source={source} downloaded={downloaded}"
-                    );
+                    log::warn!("Windows download stalled source={source} downloaded={downloaded}");
                     Err(CurlAttemptError::Other(format!(
                         "curl download stalled (no progress) source={source} downloaded={downloaded}"
                     )))
@@ -527,14 +527,6 @@ pub fn sha256_file(path: &Path) -> Result<String, EngineError> {
 mod tests {
     use super::*;
 
-    fn file_url(path: &Path) -> String {
-        let mut path = path.to_string_lossy().replace('\\', "/");
-        if !path.starts_with('/') {
-            path = format!("/{path}");
-        }
-        format!("file://{}", path.replace(' ', "%20"))
-    }
-
     #[test]
     fn download_guard_rejects_concurrent_downloads() {
         let guard = DownloadGuard::acquire().unwrap();
@@ -622,22 +614,53 @@ mod tests {
             std::env::temp_dir().join(format!("codex-win-engine-progress-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         std::fs::create_dir_all(&root).unwrap();
-        let source = root.join("source.bin");
         let dest = root.join("dest.bin");
         let bytes = vec![0x4d; 1024 * 1024];
-        std::fs::write(&source, &bytes).unwrap();
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/payload", listener.local_addr().unwrap());
+        let payload = bytes.clone();
+        let server = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(std::time::Duration::from_secs(10)))
+                .unwrap();
+            let mut request = [0; 4096];
+            assert!(stream.read(&mut request).unwrap() > 0);
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                payload.len()
+            )
+            .unwrap();
+            stream.write_all(&payload).unwrap();
+        });
 
         let seen = std::sync::Mutex::new(Vec::new());
-        let result = download_to_with_progress(&file_url(&source), &dest, &|downloaded| {
-            seen.lock().unwrap().push(downloaded);
-        });
-        if let Err(EngineError::Io(message)) = &result {
-            if message.contains("Protocol \"file\" disabled") {
-                let _ = std::fs::remove_dir_all(&root);
-                return;
-            }
-        }
+        let network = NetworkConfig::system();
+        let mut args = curl_args(
+            &url,
+            dest.to_str().unwrap(),
+            false,
+            "1048576",
+            ProgressMode::NoProgressMeter,
+            &network,
+            SchannelRevocationCheck::Strict,
+        );
+        // Only this loopback fixture permits HTTP; production remains HTTPS-only.
+        let proto = args.iter().position(|arg| arg == "--proto").unwrap();
+        args[proto + 1] = "=http".into();
+        args.extend(["--noproxy".into(), "*".into()]);
+        let result = run_curl_once(
+            "loopback-test",
+            dest.to_str().unwrap(),
+            args,
+            &|downloaded| {
+                seen.lock().unwrap().push(downloaded);
+            },
+        );
         result.unwrap();
+        server.join().unwrap();
 
         assert_eq!(std::fs::read(&dest).unwrap(), bytes);
         assert!(seen.lock().unwrap().contains(&(1024 * 1024)));

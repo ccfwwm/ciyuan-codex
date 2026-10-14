@@ -1,4 +1,4 @@
-use std::fs::{self, File};
+use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -35,7 +35,14 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> io::Result<()> {
 
 fn write_atomic_inner(path: &Path, tmp: &Path, bytes: &[u8]) -> io::Result<()> {
     {
-        let mut file = File::create(tmp)?;
+        let mut options = fs::OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        let mut file = options.open(tmp)?;
         file.write_all(bytes)?;
         file.flush()?;
         file.sync_all()?;
@@ -97,7 +104,7 @@ fn path_with_added_extension(path: &Path, added: &str) -> PathBuf {
 
 #[cfg(unix)]
 fn sync_parent_dir(parent: &Path) -> io::Result<()> {
-    File::open(parent)?.sync_all()
+    fs::File::open(parent)?.sync_all()
 }
 
 #[cfg(not(unix))]

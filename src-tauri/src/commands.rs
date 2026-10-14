@@ -739,7 +739,7 @@ pub fn manager_relaunch(app: AppHandle, state: State<'_, ManagerState>) -> Resul
     Ok(())
 }
 
-fn windows_domain_settings_for_persisted(state: &ManagerState) -> DomainAppSettings {
+pub(crate) fn windows_domain_settings_for_persisted(state: &ManagerState) -> DomainAppSettings {
     let saved = PersistedAppSettings::load();
     let mut settings = state.settings.clone();
     settings.install_root = saved.install_root;

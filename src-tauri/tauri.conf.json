@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Codex App Manager",
-  "mainBinaryName": "codex-app-manager",
+  "productName": "Ciyuan Codex",
+  "mainBinaryName": "ciyuan-codex",
   "version": "0.5.16",
-  "identifier": "io.github.wangnov.codexappmanager",
+  "identifier": "io.github.ccfwwm.ciyuan-codex",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -16,15 +16,17 @@
       {
         "label": "main",
         "create": false,
-        "title": "Codex App Manager",
-        "width": 400,
-        "height": 640,
-        "resizable": false,
+        "title": "词元互联 Codex",
+        "width": 1100,
+        "height": 720,
+        "resizable": true,
         "decorations": false,
         "transparent": true,
         "visible": false,
         "center": true,
-        "shadow": false
+        "shadow": false,
+        "minWidth": 960,
+        "minHeight": 640
       }
     ],
     "security": {
@@ -42,11 +44,17 @@
       "icons/icon.ico"
     ],
     "category": "Utility",
-    "copyright": "Copyright (c) 2026 Wangnov",
-    "shortDescription": "Codex App mirror install and update manager.",
-    "longDescription": "A manager app for installing and updating mirrored official Codex desktop app packages.",
-    "targets": ["nsis", "dmg", "app"],
-    "resources": ["resources/*"],
+    "copyright": "Copyright (c) 2026 ccfwwm; based on Codex App Manager by Wangnov",
+    "shortDescription": "Ciyuan Sub2API account and Codex desktop manager.",
+    "longDescription": "Sign in to Ciyuan, choose a model, and connect Codex with one click. Includes desktop installation, updates and skins.",
+    "targets": [
+      "nsis",
+      "dmg",
+      "app"
+    ],
+    "resources": [
+      "resources/*"
+    ],
     "windows": {
       "signCommand": {
         "cmd": "powershell",
@@ -94,14 +102,17 @@
           "Arabic": "installer/languages/Arabic.nsh"
         }
       }
+    },
+    "createUpdaterArtifacts": true,
+    "macOS": {
+      "signingIdentity": "-"
     }
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIxQThDQzg4QjlFNjE5QTEKUldTaEdlYTVpTXlvSWNQYVRHMjRNQmtLQ25HdE1aV2FoY0hLSldsZHpHM3NMYkJHMk8zVDR0WDEK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM0RUQ2QkJGMDg0Mjk0ODUKUldTRmxFSUl2MnZ0eExnZ1BiM0srVW9WSkRVRWhSbVZOdE5jUFIyeGdzMElKWTNiM29aeVhNcWUK",
       "endpoints": [
-        "https://codexapp.agentsmirror.com/manager/latest.json",
-        "https://github.com/Wangnov/Codex-App-Manager/releases/latest/download/latest.json"
+        "https://github.com/ccfwwm/ciyuan-codex/releases/latest/download/latest.json"
       ]
     }
   }

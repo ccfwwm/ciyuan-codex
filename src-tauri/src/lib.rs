@@ -3,6 +3,9 @@ pub mod app;
 pub mod commands;
 pub mod domain;
 pub mod errors;
+pub use app::codex_connection::credential_mode;
+#[cfg(debug_assertions)]
+pub use app::platform::smoke_mode;
 
 mod state;
 
@@ -205,8 +208,8 @@ fn show_native_shell_event(app: tauri::AppHandle, event: ShellEvent) {
             let mut dialog = app
                 .dialog()
                 .message(
-                    "The interface is not responding. Quit Codex App Manager safely?\n\n\
-                     界面没有响应。是否安全退出 Codex App Manager？",
+                    "The interface is not responding. Quit Ciyuan Codex safely?\n\n\
+                     界面没有响应。是否安全退出 Ciyuan Codex？",
                 )
                 .title(PRODUCT_NAME)
                 .kind(MessageDialogKind::Warning)
@@ -242,8 +245,8 @@ fn show_native_shell_event(app: tauri::AppHandle, event: ShellEvent) {
             let mut dialog = app
                 .dialog()
                 .message(format!(
-                    "Codex App Manager must stay open until the protected step finishes.\n\
-                     {reason}\n\n受保护步骤完成前，Codex App Manager 必须保持打开。"
+                    "Ciyuan Codex must stay open until the protected step finishes.\n\
+                     {reason}\n\n受保护步骤完成前，Ciyuan Codex 必须保持打开。"
                 ))
                 .title(PRODUCT_NAME)
                 .kind(MessageDialogKind::Warning)
@@ -336,7 +339,7 @@ fn initial_main_window_visibility(
 fn show_windows_startup_error(detail: &str) {
     use windows_sys::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_ICONERROR, MB_OK};
 
-    let title: Vec<u16> = "Codex App Manager startup error\0".encode_utf16().collect();
+    let title: Vec<u16> = "Ciyuan Codex startup error\0".encode_utf16().collect();
     let body: Vec<u16> = format!(
         "The secure Windows interface could not be initialized. The app will close.\n\n{detail}\0"
     )
@@ -469,6 +472,14 @@ fn build_main_window(app: &tauri::App) -> tauri::Result<()> {
             tauri::webview::NewWindowResponse::Deny
         })
         .build()?;
+    // Normalize the default expanded frame while it is still hidden.
+    crate::app::window_mode::apply_window_mode(
+        app.handle(),
+        crate::app::window_mode::WindowMode::Expanded,
+        None,
+        None,
+    )
+    .map_err(|error| tauri::Error::Io(std::io::Error::other(error.to_string())))?;
     #[cfg(target_os = "windows")]
     configure_windows_browser_accelerators(app, &window, browser_accelerators_enabled(cfg!(dev)))?;
     #[cfg(not(target_os = "windows"))]
@@ -700,7 +711,7 @@ pub fn run() {
                 .encode_utf16()
                 .chain([0])
                 .collect();
-            let caption: Vec<u16> = "Codex App Manager".encode_utf16().chain([0]).collect();
+            let caption: Vec<u16> = "Ciyuan Codex".encode_utf16().chain([0]).collect();
             unsafe {
                 MessageBoxW(
                     std::ptr::null_mut(),
@@ -751,7 +762,22 @@ pub fn run() {
             None,
         ))
         .manage(state::ManagerState::new())
+        .manage(app::platform::PlatformService::default())
         .invoke_handler(tauri::generate_handler![
+            app::platform::platform_snapshot,
+            app::platform::platform_login,
+            app::platform::platform_select_gateway,
+            app::platform::platform_send_email,
+            app::platform::platform_logout,
+            app::platform::platform_models,
+            app::platform::platform_apply,
+            app::platform::platform_orders,
+            app::platform::platform_checkout,
+            app::platform::platform_create_order,
+            app::platform::platform_order,
+            app::codex_connection::codex_connection_status,
+            app::codex_connection::codex_connection_restore,
+            app::codex_connection::codex_connection_prepare_launch,
             frontend_ready,
             frontend_failed,
             commands::mac_plan_update,
@@ -841,7 +867,7 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             install_macos_menu(app.handle(), NativeLocale::En)?;
             log::info!(
-                "Codex App Manager v{} starting (os={}, arch={})",
+                "Ciyuan Codex v{} starting (os={}, arch={})",
                 app.package_info().version,
                 std::env::consts::OS,
                 std::env::consts::ARCH
@@ -1036,7 +1062,7 @@ pub fn run() {
             }
         })
         .build(tauri::generate_context!())
-        .expect("failed to build Codex App Manager")
+        .expect("failed to build Ciyuan Codex")
         // Cmd+Q (and any other app-level quit) lands as ExitRequested rather than
         // a window CloseRequested — gate it with the same phase-aware policy.
         .run(|app, event| {
@@ -1112,7 +1138,7 @@ mod tests {
             "https://tauri.localhost/",
             "tauri://localhost:1420/",
             "tauri://user@localhost/",
-            "https://github.com/Wangnov/Codex-App-Manager",
+            "https://github.com/ccfwwm/ciyuan-codex",
             "javascript:alert(1)",
             "data:text/html,boom",
             "file:///tmp/unsafe.html",

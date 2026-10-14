@@ -216,7 +216,7 @@ jobs:
           WINDOWS_CERTIFICATE_PASSWORD: ${{ env.THROWAWAY_CERT_PFX_PASSWORD }}
         run: |
           echo "::group::[build] tauri nsis x86_64"
-          npm run tauri build -- --bundles nsis --target x86_64-pc-windows-msvc
+          npm run tauri -- build --bundles nsis --target x86_64-pc-windows-msvc --config src-tauri/tauri.ci.conf.json --ci
           echo "::endgroup::"
 
       - name: Locate installer + PE arch diagnostic
@@ -230,7 +230,7 @@ jobs:
             Write-Host "::error::[build] no *-setup.exe under $nsis"
             exit 1
           }
-          $main = "target/x86_64-pc-windows-msvc/release/codex-app-manager.exe"
+          $main = "target/x86_64-pc-windows-msvc/release/ciyuan-codex.exe"
           if (-not (Test-Path -LiteralPath $main)) {
             Write-Host "::error::[build] missing main PE: $main"
             exit 1
@@ -255,7 +255,7 @@ jobs:
       #    regardless of Status — see verify-windows-authenticode.ps1's header
       #    comment.
       #    Deliberately NOT checked here:
-      #    target/.../release/codex-app-manager.exe. tauri-bundler
+      #    target/.../release/ciyuan-codex.exe. tauri-bundler
       #    signs a copy of the main exe for embedding in the installer and then
       #    restores that on-disk build output to its unsigned original (tauri-cli
       #    2.11.5, bundle.rs "Restore unsigned and unpatched binary"), so it is

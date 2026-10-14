@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { NavBar, TopBar } from "./components";
 import { useI18n, I18nProvider } from "./i18n";
@@ -8,6 +8,7 @@ import { acquireNavLock } from "./navLock";
 import { Rail, type RailSection } from "./Rail";
 import { ThemeProvider } from "./theme";
 import { WindowModeProvider } from "./windowMode";
+import { managerApi } from "../services/managerApi";
 
 // The full chrome a mode switch touches: the TopBar (owns the expand control)
 // plus the Rail (owns collapse + navigation). jsdom has no Tauri runtime, so
@@ -55,6 +56,7 @@ function Bare() {
 }
 
 async function expand() {
+  if (document.documentElement.dataset.windowMode === "expanded") return;
   fireEvent.click(screen.getByTitle(/expand workspace/i));
   await waitFor(() =>
     expect(document.documentElement.dataset.windowMode).toBe("expanded"),
@@ -62,20 +64,32 @@ async function expand() {
 }
 
 describe("window modes", () => {
-  it("starts compact: mode stamped on <html>, rail hidden, expand offered", () => {
+  it("restores the saved workbench dimensions through backend clamping at startup", async () => {
+    localStorage.setItem("ciyuan.windowSize.expanded", JSON.stringify({ width: 1300, height: 900 }));
+    const resize = vi.spyOn(managerApi, "setWindowMode").mockResolvedValue({ mode: "expanded", width: 1200, height: 800 });
+    try {
+      render(<Harness />);
+      await waitFor(() => expect(resize).toHaveBeenCalledWith("expanded", { width: 1300, height: 900 }));
+      await waitFor(() => expect(JSON.parse(localStorage.getItem("ciyuan.windowSize.expanded") ?? "null")).toEqual({ width: 1200, height: 800 }));
+    } finally { resize.mockRestore(); localStorage.removeItem("ciyuan.windowSize.expanded"); }
+  });
+  it("starts expanded with AI platform navigation", () => {
     render(<Harness />);
-    expect(document.documentElement.dataset.windowMode).toBe("compact");
-    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
-    expect(screen.getByTitle(/expand workspace/i)).toBeInTheDocument();
+    expect(document.documentElement.dataset.windowMode).toBe("expanded");
+    expect(screen.getByRole("navigation")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /AI Platform/i })).toBeInTheDocument();
+    expect(screen.queryByTitle(/expand workspace/i)).not.toBeInTheDocument();
   });
 
   it("expanding shows the rail, retires the expand control and remembers the size", async () => {
     render(<Harness />);
+    fireEvent.click(screen.getByRole("button", { name: /collapse workspace/i }));
+    await waitFor(() => expect(document.documentElement.dataset.windowMode).toBe("compact"));
     await expand();
     expect(screen.getByRole("navigation")).toBeInTheDocument();
     expect(screen.queryByTitle(/expand workspace/i)).not.toBeInTheDocument();
     // The echoed (browser-fallback default) size is persisted for next time.
-    expect(JSON.parse(localStorage.getItem("cam.windowSize.expanded") ?? "null")).toEqual({
+    expect(JSON.parse(localStorage.getItem("ciyuan.windowSize.expanded") ?? "null")).toEqual({
       width: 1100,
       height: 720,
     });

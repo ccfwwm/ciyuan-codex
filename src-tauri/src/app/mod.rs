@@ -1,5 +1,6 @@
 pub mod atomic_file;
 pub mod clipboard;
+pub mod codex_connection;
 pub mod codex_self_update;
 pub mod codex_theme;
 pub mod config_health;
@@ -15,6 +16,7 @@ pub mod op_phase;
 pub mod operation_outcome;
 pub mod oplock;
 pub mod paths;
+pub mod platform;
 pub mod provenance;
 pub mod release_install;
 pub mod settings_store;

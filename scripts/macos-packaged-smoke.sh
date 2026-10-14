@@ -70,17 +70,17 @@ plist() {
 
 menu_copy() {
   case "$EXPECTED_LANG" in
-    en) EDIT_MENU="Edit"; WINDOW_MENU="Window"; QUIT_ITEM="Quit Codex App Manager" ;;
-    zh-CN) EDIT_MENU="编辑"; WINDOW_MENU="窗口"; QUIT_ITEM="退出 Codex App Manager" ;;
-    zh-TW) EDIT_MENU="編輯"; WINDOW_MENU="視窗"; QUIT_ITEM="結束 Codex App Manager" ;;
-    ja) EDIT_MENU="編集"; WINDOW_MENU="ウインドウ"; QUIT_ITEM="Codex App Managerを終了" ;;
-    ko) EDIT_MENU="편집"; WINDOW_MENU="윈도우"; QUIT_ITEM="Codex App Manager 종료" ;;
-    fr) EDIT_MENU="Édition"; WINDOW_MENU="Fenêtre"; QUIT_ITEM="Quitter Codex App Manager" ;;
-    de) EDIT_MENU="Bearbeiten"; WINDOW_MENU="Fenster"; QUIT_ITEM="Codex App Manager beenden" ;;
-    es) EDIT_MENU="Edición"; WINDOW_MENU="Ventana"; QUIT_ITEM="Salir de Codex App Manager" ;;
-    pt-BR) EDIT_MENU="Editar"; WINDOW_MENU="Janela"; QUIT_ITEM="Encerrar Codex App Manager" ;;
-    ru) EDIT_MENU="Правка"; WINDOW_MENU="Окно"; QUIT_ITEM="Завершить Codex App Manager" ;;
-    ar) EDIT_MENU="تحرير"; WINDOW_MENU="نافذة"; QUIT_ITEM="إنهاء Codex App Manager" ;;
+    en) EDIT_MENU="Edit"; WINDOW_MENU="Window"; QUIT_ITEM="Quit Ciyuan Codex" ;;
+    zh-CN) EDIT_MENU="编辑"; WINDOW_MENU="窗口"; QUIT_ITEM="退出 Ciyuan Codex" ;;
+    zh-TW) EDIT_MENU="編輯"; WINDOW_MENU="視窗"; QUIT_ITEM="結束 Ciyuan Codex" ;;
+    ja) EDIT_MENU="編集"; WINDOW_MENU="ウインドウ"; QUIT_ITEM="Ciyuan Codexを終了" ;;
+    ko) EDIT_MENU="편집"; WINDOW_MENU="윈도우"; QUIT_ITEM="Ciyuan Codex 종료" ;;
+    fr) EDIT_MENU="Édition"; WINDOW_MENU="Fenêtre"; QUIT_ITEM="Quitter Ciyuan Codex" ;;
+    de) EDIT_MENU="Bearbeiten"; WINDOW_MENU="Fenster"; QUIT_ITEM="Ciyuan Codex beenden" ;;
+    es) EDIT_MENU="Edición"; WINDOW_MENU="Ventana"; QUIT_ITEM="Salir de Ciyuan Codex" ;;
+    pt-BR) EDIT_MENU="Editar"; WINDOW_MENU="Janela"; QUIT_ITEM="Encerrar Ciyuan Codex" ;;
+    ru) EDIT_MENU="Правка"; WINDOW_MENU="Окно"; QUIT_ITEM="Завершить Ciyuan Codex" ;;
+    ar) EDIT_MENU="تحرير"; WINDOW_MENU="نافذة"; QUIT_ITEM="إنهاء Ciyuan Codex" ;;
     *) fail "locale" "unsupported expected language: $EXPECTED_LANG" ;;
   esac
 }
@@ -222,7 +222,7 @@ APPLESCRIPT
 
 assert_native_menu() {
   local pid=$1
-  osascript - "$pid" "Codex App Manager" "$EDIT_MENU" "$WINDOW_MENU" "$QUIT_ITEM" <<'APPLESCRIPT'
+  osascript - "$pid" "Ciyuan Codex" "$EDIT_MENU" "$WINDOW_MENU" "$QUIT_ITEM" <<'APPLESCRIPT'
 on run argv
   set targetPid to (item 1 of argv) as integer
   set productName to item 2 of argv
@@ -243,7 +243,7 @@ APPLESCRIPT
 
 click_quit_menu() {
   local pid=$1
-  osascript - "$pid" "Codex App Manager" "$QUIT_ITEM" >/dev/null <<'APPLESCRIPT'
+  osascript - "$pid" "Ciyuan Codex" "$QUIT_ITEM" >/dev/null <<'APPLESCRIPT'
 on run argv
   set targetPid to (item 1 of argv) as integer
   set productName to item 2 of argv
@@ -304,10 +304,10 @@ launch_app() {
 
 [[ -d "$APP" ]] || fail "bundle" "app bundle not found: $APP"
 BUNDLE_ID=$(plist "$APP" CFBundleIdentifier)
-[[ "$BUNDLE_ID" == "io.github.wangnov.codexappmanager.smoke" ]] ||
+[[ "$BUNDLE_ID" == "io.github.ccfwwm.ciyuan-codex.smoke" ]] ||
   fail "bundle" "refusing to smoke non-isolated bundle id: $BUNDLE_ID"
 PRODUCT_NAME=$(plist "$APP" CFBundleName)
-[[ "$PRODUCT_NAME" == "Codex App Manager" ]] ||
+[[ "$PRODUCT_NAME" == "Ciyuan Codex" ]] ||
   fail "bundle" "unexpected product name: $PRODUCT_NAME"
 EXECUTABLE=$(plist "$APP" CFBundleExecutable)
 BINARY="$APP/Contents/MacOS/$EXECUTABLE"

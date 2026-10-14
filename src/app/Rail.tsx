@@ -8,7 +8,7 @@ import { useWindowModeOptional } from "./windowMode";
 /** Views the rail can jump to directly. Sub-views that live *under* Settings
  *  (About, Uninstall, Codex config) highlight the Settings item — the rail
  *  reflects sections, not the full view stack. */
-export type RailSection = "home" | "themes" | "settings";
+export type RailSection = "home" | "themes" | "settings" | "platform";
 
 /** Left navigation card, shown only in the expanded workbench. It is a second
  *  floating `.pop` card beside the active view's card — same material, same
@@ -21,7 +21,7 @@ export function Rail({
   section: RailSection;
   onNavigate: (section: RailSection) => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const windowMode = useWindowModeOptional();
   // An in-flight operation (ProgressScreen mounted) pulls the rail's exits:
   // its compact counterpart offers none, and leaving would allow concurrent
@@ -31,6 +31,7 @@ export function Rail({
   if (windowMode?.mode !== "expanded") return null;
 
   const items: Array<{ key: RailSection; icon: IconName; label: string }> = [
+    { key: "platform", icon: "globe", label: lang.startsWith("zh") ? "AI 平台" : "AI Platform" },
     { key: "home", icon: "house", label: t("rail.home") },
     { key: "themes", icon: "palette", label: t("themes.title") },
     { key: "settings", icon: "gear", label: t("nav.settings") },

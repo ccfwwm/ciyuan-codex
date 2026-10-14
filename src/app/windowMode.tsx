@@ -14,11 +14,8 @@ import { managerApi } from "../services/managerApi";
 import type { WindowMode } from "../shared/types";
 import { installWindowDragHandler } from "./windowDrag";
 
-/** Remembered expanded size (logical px, JSON `{width,height}`). The *mode*
- *  itself is deliberately not persisted: the manager is an at-a-glance popover
- *  first, so every launch starts compact and the workbench is a per-session
- *  posture. */
-const LS_SIZE_KEY = "cam.windowSize.expanded";
+/** Remembered workbench size (logical px). Each launch starts expanded. */
+const LS_SIZE_KEY = "ciyuan.windowSize.expanded";
 
 /** How long the stage fade-out gets before the native resize fires — matches
  *  the `#root` opacity transition in styles.css so the reflow happens behind
@@ -69,7 +66,7 @@ function storeSize(size: { width: number; height: number }) {
 const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 export function WindowModeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<WindowMode>("compact");
+  const [mode, setModeState] = useState<WindowMode>("expanded");
   const [switching, setSwitching] = useState(false);
   const modeRef = useRef(mode);
   const focusedModeRef = useRef(mode);
@@ -81,6 +78,28 @@ export function WindowModeProvider({ children }: { children: ReactNode }) {
   const pendingResize = useRef<{ width: number; height: number } | null>(null);
   const resizeTimer = useRef<number | null>(null);
   const scaleRef = useRef(1);
+  const startupResize = useRef<ReturnType<typeof managerApi.setWindowMode> | null>(null);
+
+  // Backend startup clamps the default frame; restore the renderer's saved
+  // dimensions through the same backend clamping before allowing mode changes.
+  useEffect(() => {
+    const remembered = readStoredSize();
+    if (!remembered) return;
+    let disposed = false;
+    inFlight.current = true;
+    setSwitching(true);
+    startupResize.current ??= managerApi.setWindowMode("expanded", remembered);
+    void startupResize.current.then(report => {
+      if (disposed) return;
+      storeSize({ width: report.width, height: report.height });
+      setModeState(report.mode);
+    }).catch(cause => {
+      if (!disposed) console.warn("[window-mode] startup resize failed", cause);
+    }).finally(() => {
+      if (!disposed) { inFlight.current = false; setSwitching(false); }
+    });
+    return () => { disposed = true; };
+  }, []);
 
   const flushPendingSize = useCallback(() => {
     if (resizeTimer.current != null) {
