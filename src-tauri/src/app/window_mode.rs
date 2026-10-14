@@ -163,6 +163,9 @@ pub fn apply_window_mode(
         WindowMode::Expanded => {
             // The workbench fills the frame edge-to-edge (no transparent
             // gutter), so the shadow must come from the OS.
+            window
+                .set_min_size(None::<LogicalSize<f64>>)
+                .map_err(|e| win_err("min size", e))?;
             let _ = window.set_shadow(true);
             window
                 .set_resizable(true)

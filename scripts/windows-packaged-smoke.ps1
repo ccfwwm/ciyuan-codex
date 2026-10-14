@@ -19,7 +19,7 @@
 #   & .\scripts\windows-packaged-smoke.ps1 -Installer path\to\*-setup.exe `
 #       -AuthenticodeMode required -ExpectedThumbprint $thumbprint
 #
-# Safe for CI: currentUser installMode → %LOCALAPPDATA%\Codex App Manager
+# Safe for CI: currentUser installMode → %LOCALAPPDATA%\Ciyuan Codex
 # (no admin elevation). Kills the app between stages. Does not touch ~/.codex.
 
 [CmdletBinding()]
@@ -27,8 +27,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Installer,
 
-    [string]$ProductName = "Codex App Manager",
-    [string]$MainBinaryName = "codex-app-manager",
+    [string]$ProductName = "Ciyuan Codex",
+    [string]$MainBinaryName = "ciyuan-codex",
     [int]$LaunchSeconds = 12,
     [ValidateSet("optional", "required", "skip")]
     [string]$AuthenticodeMode = "optional",

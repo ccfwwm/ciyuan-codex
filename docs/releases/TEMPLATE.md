@@ -1,60 +1,35 @@
-<!--
-  Release-notes template. Copy to docs/releases/v<X.Y.Z>.md inside the
-  version-bump PR; the unprivileged tag signal asks the default-branch
-  release.yml to pick it up by tag name
-  (and appends GitHub's auto-generated "What's Changed" + Full Changelog).
-  If the file is missing the workflow falls back to a minimal install table,
-  so a release is never published with an empty body.
+<p align="center"><img src="https://raw.githubusercontent.com/ccfwwm/ciyuan-codex/main/assets/ciyuan-banner.svg" alt="词元互联 Codex" width="100%"></p>
 
-  Style (融合 Deck 的双语成对行 + 我们自己的分发重点):
-  - zh 在前,en 紧随成对出现;不堆营销词,写用户可感知的变化。
-  - 要点 3-6 条;patch 版可以只有「修复」一组。
-  - 不要写未核实的渠道/数字;镜像直链恒指向最新版,历史版本读者请用页面下方 Assets。
--->
-
-<p align="center">
-  <a href="https://codexapp.agentsmirror.com">
-    <img src="https://raw.githubusercontent.com/Wangnov/Codex-App-Manager/main/assets/banner.svg" alt="Codex App Manager" width="100%">
-  </a>
-</p>
-
-> 一句话概括这一版(zh)。
-> One line on what this release does (en).
+> 一句话双语概括本次用户可感知变化。
+> One sentence describing this release.
 
 ## ✨ 亮点 · Highlights
 
-- **要点标题**:中文说明,落在用户可感知的行为变化上。
-  English counterpart, written natively — not a translation artifact.
+- **要点**：中文说明。
+  English counterpart.
 
 ## 🐛 修复 · Fixes
 
-- **修了什么**:之前的症状 → 现在的行为。
-  What was broken → what happens now.
+- **修复**：中文说明。
+  English counterpart.
 
 ## 📦 安装与升级 · Install & Upgrade
 
-**已经安装?** 打开应用即可收到本次更新——macOS 只下载版本间的增量,校验失败自动回滚。
-**Already installed?** The app offers this update in-app — macOS pulls only the delta, with automatic rollback.
+已安装词元互联 Codex 的用户可在应用内检查更新；手动安装选择 EXE / DMG。更新源仅为本仓库 GitHub Releases。
+Existing Ciyuan installations can check in-app. Choose EXE / DMG for manual installation. Updates use this repository's GitHub Releases.
 
-| 平台 · Platform | 下载 · Download(国内直连 · China-reachable) |
+| 平台 · Platform | 安装包 · Installer |
 | --- | --- |
-| macOS · Apple Silicon | [CodexAppManager_aarch64.dmg](https://codexapp.agentsmirror.com/manager/latest/CodexAppManager_aarch64.dmg) |
-| macOS · Intel | [CodexAppManager_x86_64.dmg](https://codexapp.agentsmirror.com/manager/latest/CodexAppManager_x86_64.dmg) |
-| Windows · x64 | [CodexAppManager_x64-setup.exe](https://codexapp.agentsmirror.com/manager/latest/CodexAppManager_x64-setup.exe) |
-| Windows · ARM64 | [CodexAppManager_arm64-setup.exe](https://codexapp.agentsmirror.com/manager/latest/CodexAppManager_arm64-setup.exe) |
+| Windows x64 | Ciyuan-Codex_<VERSION>_windows-x64-setup.exe |
+| Windows ARM64 | Ciyuan-Codex_<VERSION>_windows-arm64-setup.exe |
+| macOS Intel | Ciyuan-Codex_<VERSION>_macos-x64.dmg |
+| macOS Apple Silicon | Ciyuan-Codex_<VERSION>_macos-arm64.dmg |
 
-**Windows 签名状态（本版必须据实填写）:** 当前安装器没有 Authenticode 代码签名,首次运行可能出现 SmartScreen 提示;不得把 `.sig` / `latest.json` 的 Tauri updater 字节签名写成 Windows 发行者身份。SignPath Foundation 申请已不再推进,项目改为采用付费云 HSM 证书;证书配置完成前发布保持未签名。参见 [代码签名政策](https://github.com/Wangnov/Codex-App-Manager/blob/main/docs/code-signing-policy.md)与 [Windows signing and verification](https://github.com/Wangnov/Codex-App-Manager/blob/main/docs/windows-signing.md)。
-**Windows signing status (replace with this release's verified facts):** The current installers are not Authenticode-signed, so SmartScreen may warn on first run. Never describe a Tauri updater signature in `.sig` / `latest.json` as Windows publisher identity. The SignPath Foundation application is no longer being pursued; the project is moving to a paid cloud-HSM certificate, and releases stay unsigned until one is configured. See the [code signing policy](https://github.com/Wangnov/Codex-App-Manager/blob/main/docs/code-signing-policy.md) and [Windows signing and verification](https://github.com/Wangnov/Codex-App-Manager/blob/main/docs/windows-signing.md).
+**系统签名 / System signing:** 据实填写 Windows Authenticode 与 macOS Developer ID / 公证状态。Tauri 更新签名不代表系统发行者身份。
 
-**隐私 · Privacy:** [隐私政策 · Privacy policy](https://github.com/Wangnov/Codex-App-Manager/blob/main/docs/privacy.md)
+**校验 / Verify:** Windows 使用 Get-FileHash，macOS 使用 shasum -a 256，对比本页 SHA256SUMS。
 
-**核验下载:** 本页 Assets 带有 `SHA256SUMS`;Windows 用 `Get-FileHash .\CodexAppManager_x64-setup.exe -Algorithm SHA256` 或替换为 ARM64 文件名,macOS 用 `shasum -a 256 CodexAppManager_aarch64.dmg`,再与 `SHA256SUMS` 比对。
-**Verify downloads:** This release includes `SHA256SUMS` in Assets; on Windows run `Get-FileHash .\CodexAppManager_x64-setup.exe -Algorithm SHA256` or swap in the ARM64 filename, and on macOS run `shasum -a 256 CodexAppManager_aarch64.dmg`, then compare with `SHA256SUMS`.
+.app.tar.gz、.sig 和 latest.json 是自动更新工件，手动安装选择安装包。
+.app.tar.gz, .sig and latest.json are updater artifacts; choose installers for manual installation.
 
-```bash
-# macOS · Homebrew
-brew install --cask wangnov/tap/codex-app-manager
-```
-
-> 镜像直链恒指向**最新**版本;如需本页对应的历史版本,请使用下方 Assets。`.app.tar.gz` / `.sig` / `latest.json` 是自动更新器的工件,手动安装请选 `.dmg` / `.exe`。
-> Mirror permalinks always resolve to the **latest** release — for this exact version use the assets below. `.app.tar.gz` / `.sig` / `latest.json` belong to the auto-updater; pick the `.dmg` / `.exe` for manual installs.
+[隐私 / Privacy](https://github.com/ccfwwm/ciyuan-codex/blob/main/docs/privacy.md) · [签名 / Signing](https://github.com/ccfwwm/ciyuan-codex/blob/main/docs/code-signing-policy.md)

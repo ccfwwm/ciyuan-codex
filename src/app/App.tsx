@@ -13,8 +13,9 @@ import { About } from "./views/About";
 import { Uninstall } from "./views/Uninstall";
 import { CodexConfig } from "./views/CodexConfig";
 import { CodexThemes } from "./views/CodexThemes";
+import { AiPlatform } from "./views/AiPlatform";
 
-type View = "home" | "settings" | "about" | "uninstall" | "config" | "themes";
+type View = "home" | "settings" | "about" | "uninstall" | "config" | "themes" | "platform";
 
 function focusPageTarget(root: ParentNode | null) {
   if (!root) return;
@@ -32,7 +33,7 @@ function focusPageTarget(root: ParentNode | null) {
 }
 
 function Shell() {
-  const [view, setView] = useState<View>("home");
+  const [view, setView] = useState<View>("platform");
   // Skip the first paint: NavBar / Home already own initial focus; stealing it
   // on mount is noisier than helpful for keyboard users.
   const skipInitialFocus = useRef(true);
@@ -69,7 +70,7 @@ function Shell() {
           Settings section. Jumping home reuses the same cross-fade as the
           NavBar back path so the two routes feel identical. */}
       <Rail
-        section={view === "home" ? "home" : view === "themes" ? "themes" : "settings"}
+        section={view === "home" ? "home" : view === "themes" ? "themes" : view === "platform" ? "platform" : "settings"}
         onNavigate={(section) => {
           const target: View = section;
           if (target === view) return;
@@ -79,6 +80,10 @@ function Shell() {
       />
       <div data-view="home" style={{ display: view === "home" ? "contents" : "none" }}>
         <Home onOpenSettings={() => setView("settings")} />
+      </div>
+      {/* Keep pending payment details and polling alive across navigation. */}
+      <div data-view="platform" style={{ display: view === "platform" ? "contents" : "none" }}>
+        <AiPlatform onBack={() => setView("home")} />
       </div>
       {view === "settings" ? (
         <div data-view="settings" style={{ display: "contents" }}>

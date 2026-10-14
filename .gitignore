@@ -3,6 +3,8 @@ dist/
 target/
 src-tauri/gen/schemas/
 .devserver/
+.build-cache/
+.playwright-mcp/
 
 .DS_Store
 *.log

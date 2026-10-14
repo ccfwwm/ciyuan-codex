@@ -95,13 +95,13 @@ fn select_staging_root(smoke: SmokeDataDir, temp_dir: &Path, process_id: u32) ->
         SmokeDataDir::Invalid => temp_dir
             .join(format!("codex-app-manager-smoke-invalid-{process_id}"))
             .join("staging"),
-        SmokeDataDir::Absent => temp_dir.join("codex-app-manager").join("staging"),
+        SmokeDataDir::Absent => temp_dir.join("ciyuan-codex").join("staging"),
     }
 }
 
 /// Manager data directory shared by settings, provenance, and operation locks.
 pub fn data_dir() -> Option<PathBuf> {
-    let production = directories::ProjectDirs::from("io.github", "wangnov", "codexappmanager")
+    let production = directories::ProjectDirs::from("io.github", "ccfwwm", "ciyuan-codex")
         .map(|dirs| dirs.data_dir().to_path_buf());
     select_data_dir(smoke_data_dir_from_env(), production)
 }
@@ -110,7 +110,7 @@ pub fn data_dir() -> Option<PathBuf> {
 /// catalog preview thumbnails). Safe to clear at any time — distinct from
 /// `data_dir`, which holds settings/provenance that must persist.
 pub fn cache_dir() -> Option<PathBuf> {
-    directories::ProjectDirs::from("io.github", "wangnov", "codexappmanager")
+    directories::ProjectDirs::from("io.github", "ccfwwm", "ciyuan-codex")
         .map(|dirs| dirs.cache_dir().to_path_buf())
 }
 
@@ -144,7 +144,7 @@ pub fn codex_home_dir() -> Option<PathBuf> {
 /// one — skins are megabytes of re-downloadable content that must not ride
 /// a domain roaming profile.
 pub fn default_skins_store_dir() -> Option<PathBuf> {
-    let dirs = directories::ProjectDirs::from("io.github", "wangnov", "codexappmanager")?;
+    let dirs = directories::ProjectDirs::from("io.github", "ccfwwm", "ciyuan-codex")?;
     if cfg!(target_os = "windows") {
         Some(dirs.data_local_dir().join("themes"))
     } else {
@@ -231,7 +231,7 @@ mod tests {
         );
 
         let temp_dir = std::env::temp_dir();
-        let production_staging = temp_dir.join("codex-app-manager").join("staging");
+        let production_staging = temp_dir.join("ciyuan-codex").join("staging");
         let invalid_staging = select_staging_root(SmokeDataDir::Invalid, &temp_dir, 1234);
         assert_ne!(invalid_staging, production_staging);
         assert_eq!(

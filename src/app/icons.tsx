@@ -214,9 +214,10 @@ const PATHS: Record<IconName, ReactNode> = {
   ),
 };
 
-export function Icon({ name, className }: { name: IconName; className?: string }) {
+export function Icon({ name, className, size }: { name: IconName; className?: string; size?: number }) {
   return (
     <svg
+      style={size ? { width: size, height: size } : undefined}
       className={["cam-icon", `cam-icon-${name}`, className].filter(Boolean).join(" ")}
       viewBox="0 0 24 24"
       fill="none"
