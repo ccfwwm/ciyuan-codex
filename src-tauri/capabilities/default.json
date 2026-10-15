@@ -13,6 +13,6 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-scale-factor",
     "dialog:allow-open",
-    "dialog:allow-confirm"
+    "dialog:allow-message"
   ]
 }

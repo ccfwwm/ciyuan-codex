@@ -6,6 +6,8 @@ import { AiPlatform } from "./AiPlatform";
 import { gateways, platformApi, type PlatformSnapshot } from "../../services/platformApi";
 import { managerApi } from "../../services/managerApi";
 
+const invoke = vi.hoisted(() => vi.fn());
+
 vi.mock("../../services/platformApi", async (original) => {
   const actual = await original<typeof import("../../services/platformApi")>();
   return { ...actual, platformApi: Object.fromEntries(Object.keys(actual.platformApi).map(key => [key, vi.fn()])) };
@@ -15,8 +17,8 @@ vi.mock("../../services/managerApi", () => ({ managerApi: { openUrl: vi.fn(), wi
 const snapshot: PlatformSnapshot = { signedIn: false, gateway: gateways[0].url, email: "", stale: false, groups: [], lowBalanceThreshold: 5,
   publicConfig: { registration_enabled: true, email_verify_enabled: true } };
 function show() { render(<ThemeProvider><I18nProvider><AiPlatform onBack={() => undefined} /></I18nProvider></ThemeProvider>); }
-beforeEach(() => { vi.resetAllMocks(); vi.mocked(platformApi.snapshot).mockResolvedValue(snapshot); vi.mocked(platformApi.connection).mockResolvedValue({ connected: false, backupAvailable: false }); });
-afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
+beforeEach(() => { window.__TAURI_INTERNALS__ = { invoke }; vi.resetAllMocks(); vi.mocked(platformApi.snapshot).mockResolvedValue(snapshot); vi.mocked(platformApi.connection).mockResolvedValue({ connected: false, backupAvailable: false }); });
+afterEach(() => { delete window.__TAURI_INTERNALS__; vi.useRealTimers(); vi.restoreAllMocks(); });
 const account = { ...snapshot, signedIn: true, email: "fixture@example.test", balance: 2, groups: [{ id: 3, name: "Codex", platform: "openai" }] };
 
 describe("AI platform account flows", () => {
@@ -24,7 +26,7 @@ describe("AI platform account flows", () => {
     const events: string[] = [];
     vi.mocked(platformApi.snapshot).mockResolvedValue(account);
     vi.mocked(platformApi.models).mockResolvedValue([{ id: "gpt-6.1-sol", name: "Sol", description: "verified" }]);
-    vi.spyOn(window, "confirm").mockImplementation(() => Promise.resolve(true) as unknown as boolean);
+    vi.mocked(invoke).mockResolvedValue("Ok");
     let stopped!: () => void;
     vi.mocked(platformApi.prepareLaunch).mockImplementation(() => new Promise<void>(resolve => { stopped = () => { events.push("stopped"); resolve(); }; }));
     vi.mocked(platformApi.apply).mockImplementation(async () => { events.push("applied"); return { connected: true, backupAvailable: true }; });
@@ -38,16 +40,19 @@ describe("AI platform account flows", () => {
     expect(platformApi.apply).not.toHaveBeenCalled();
     await act(async () => { stopped(); });
     await waitFor(() => expect(events).toEqual(["stopped", "applied", "launched"]));
+    // Exercise the real dialog SDK: the old window.confirm shim invoked a
+    // removed command despite the deprecated allow-confirm permission.
+    expect(invoke).toHaveBeenCalledWith("plugin:dialog|message", expect.objectContaining({ buttons: "OkCancel" }), undefined);
   });
   it("awaits native asynchronous cancellation before applying or closing Codex", async () => {
     vi.mocked(platformApi.snapshot).mockResolvedValue(account);
     vi.mocked(platformApi.models).mockResolvedValue([{ id: "gpt-6.1-sol", name: "Sol", description: "verified" }]);
-    vi.spyOn(window, "confirm").mockImplementation(() => Promise.resolve(false) as unknown as boolean);
+    vi.mocked(invoke).mockResolvedValue("Cancel");
     show(); await screen.findByText(account.email);
     fireEvent.click(screen.getAllByRole("button", { name: "Model connection" })[0]);
     await screen.findByRole("option", { name: "Sol" });
     fireEvent.click(screen.getByRole("button", { name: "Verify, apply & launch" }));
-    await waitFor(() => expect(window.confirm).toHaveBeenCalled());
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByRole("button", { name: "Verify, apply & launch" })).toBeEnabled());
     expect(platformApi.apply).not.toHaveBeenCalled();
     expect(platformApi.prepareLaunch).not.toHaveBeenCalled();
@@ -87,18 +92,18 @@ describe("AI platform account flows", () => {
   it("awaits confirmation before the backend shutdown and logout, and honors cancellation", async () => {
     vi.mocked(platformApi.snapshot).mockResolvedValue(account);
     vi.mocked(platformApi.connection).mockResolvedValue({ connected: true, backupAvailable: true });
-    let confirm!: (result: boolean) => void;
-    vi.spyOn(window, "confirm").mockImplementation(() => new Promise<boolean>(resolve => { confirm = resolve; }) as unknown as boolean);
+    let confirm!: (result: string) => void;
+    vi.mocked(invoke).mockImplementation(() => new Promise<string>(resolve => { confirm = resolve; }));
     show(); await screen.findByText(account.email);
     fireEvent.click(screen.getByRole("button", { name: "Sign out & disconnect" }));
-    await waitFor(() => expect(window.confirm).toHaveBeenCalled());
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
     expect(platformApi.logout).not.toHaveBeenCalled();
-    await act(async () => { confirm(false); });
+    await act(async () => { confirm("Cancel"); });
     await waitFor(() => expect(screen.getByRole("button", { name: "Sign out & disconnect" })).toBeEnabled());
     expect(platformApi.logout).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Sign out & disconnect" }));
-    await waitFor(() => expect(window.confirm).toHaveBeenCalledTimes(2));
-    await act(async () => { confirm(true); });
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+    await act(async () => { confirm("Ok"); });
     await waitFor(() => expect(platformApi.logout).toHaveBeenCalledWith(false));
   });
   it("discards the previous account's payment and outstanding poll after session loss", async () => {
